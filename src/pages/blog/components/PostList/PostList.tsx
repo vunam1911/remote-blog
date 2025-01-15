@@ -21,7 +21,7 @@ export default function PostList() {
         const controller = new AbortController()
         http.get('/posts', { signal: controller.signal })
             .then((res) => {
-                console.log(res)
+                // dispatch(getPostListSuccess(res.data))
             })
             .catch((err) => {
                 if (err.code === 'ERR_CANCELED') return
