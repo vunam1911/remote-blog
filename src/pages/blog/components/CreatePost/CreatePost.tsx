@@ -1,7 +1,7 @@
-import { addPost, cancelEditingPost, finishEditingPost } from 'pages/blog/blog.reducer'
+import { addPost, cancelEditingPost, updatePost } from 'pages/blog/blog.reducer'
 import { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from 'store'
+import { useSelector } from 'react-redux'
+import { RootState, useAppDispatch } from 'store'
 import { Post } from 'types/blog.type'
 
 const initialState: Post = {
@@ -15,7 +15,7 @@ const initialState: Post = {
 
 const CreatePost = () => {
     const [formData, setFormData] = useState<Post>(initialState)
-    const dispatch = useDispatch()
+    const dispatch = useAppDispatch()
     const editingPost = useSelector((state: RootState) => state.blog.editingPost)
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -25,10 +25,9 @@ const CreatePost = () => {
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (editingPost) {
-            dispatch(finishEditingPost(formData))
+            dispatch(updatePost(formData))
         } else {
-            const formDataWithId = { ...formData, id: new Date().toISOString() }
-            dispatch(addPost(formDataWithId))
+            dispatch(addPost(formData))
         }
         setFormData(initialState)
     }
@@ -38,8 +37,8 @@ const CreatePost = () => {
         setFormData(initialState)
     }
 
-    const handleFinishEditing = () => {
-        dispatch(finishEditingPost(formData))
+    const handleUpdatePost = () => {
+        dispatch(updatePost(formData))
     }
 
     useEffect(() => {
@@ -149,7 +148,7 @@ const CreatePost = () => {
                         <button
                             type='submit'
                             className='group relative mb-2 mr-2 inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-teal-300 to-lime-300 p-0.5 text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-200 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 dark:focus:ring-lime-800'
-                            onClick={handleFinishEditing}
+                            onClick={handleUpdatePost}
                         >
                             <span className='relative rounded-md bg-white px-5 py-2.5 transition-all duration-75 ease-in group-hover:bg-opacity-0 dark:bg-gray-900'>
                                 Update Post

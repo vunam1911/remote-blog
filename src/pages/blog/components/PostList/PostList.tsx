@@ -1,12 +1,12 @@
 import { useDispatch, useSelector } from 'react-redux'
 import PostItem from '../PostItem'
-import { RootState } from 'store'
-import { deletePost, startEditingPost } from 'pages/blog/blog.reducer'
+import { RootState, useAppDispatch } from 'store'
+import { deletePost, getPostList, startEditingPost } from 'pages/blog/blog.reducer'
 import { useEffect } from 'react'
 import http from 'ultis/http'
 
 export default function PostList() {
-    const dispatch = useDispatch()
+    const dispatch = useAppDispatch()
     const postList = useSelector((state: RootState) => state.blog.postList)
 
     const handleDeletePost = (id: string) => {
@@ -18,19 +18,9 @@ export default function PostList() {
     }
 
     useEffect(() => {
-        const controller = new AbortController()
-        http.get('/posts', { signal: controller.signal })
-            .then((res) => {
-                // dispatch(getPostListSuccess(res.data))
-            })
-            .catch((err) => {
-                if (err.code === 'ERR_CANCELED') return
-            })
-
-        return () => {
-            controller.abort()
-        }
-    }, [])
+        const promise = dispatch(getPostList())
+        return () => promise.abort()
+    }, [dispatch])
 
     return (
         <div className='bg-white py-6 sm:py-8 lg:py-12'>
