@@ -16,7 +16,7 @@ const initialState: Post = {
 const CreatePost = () => {
     const [formData, setFormData] = useState<Post>(initialState)
     const dispatch = useAppDispatch()
-    const editingPost = useSelector((state: RootState) => state.blog.editingPost)
+    const { editingPost, isLoading } = useSelector((state: RootState) => ({ ...state.blog }))
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
@@ -27,7 +27,8 @@ const CreatePost = () => {
         if (editingPost) {
             dispatch(updatePost(formData))
         } else {
-            dispatch(addPost(formData))
+            const { id, ...postWithoutId } = formData
+            dispatch(addPost(postWithoutId))
         }
         setFormData(initialState)
     }
@@ -35,10 +36,6 @@ const CreatePost = () => {
     const handleCancelEditing = () => {
         dispatch(cancelEditingPost())
         setFormData(initialState)
-    }
-
-    const handleUpdatePost = () => {
-        dispatch(updatePost(formData))
     }
 
     useEffect(() => {
@@ -148,7 +145,6 @@ const CreatePost = () => {
                         <button
                             type='submit'
                             className='group relative mb-2 mr-2 inline-flex items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-teal-300 to-lime-300 p-0.5 text-sm font-medium text-gray-900 focus:outline-none focus:ring-4 focus:ring-lime-200 group-hover:from-teal-300 group-hover:to-lime-300 dark:text-white dark:hover:text-gray-900 dark:focus:ring-lime-800'
-                            onClick={handleUpdatePost}
                         >
                             <span className='relative rounded-md bg-white px-5 py-2.5 transition-all duration-75 ease-in group-hover:bg-opacity-0 dark:bg-gray-900'>
                                 Update Post

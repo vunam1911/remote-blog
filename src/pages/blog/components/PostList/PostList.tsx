@@ -1,13 +1,13 @@
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import PostItem from '../PostItem'
 import { RootState, useAppDispatch } from 'store'
 import { deletePost, getPostList, startEditingPost } from 'pages/blog/blog.reducer'
 import { useEffect } from 'react'
-import http from 'ultis/http'
+import SkeletonPost from '../SkeletonPost'
 
 export default function PostList() {
     const dispatch = useAppDispatch()
-    const postList = useSelector((state: RootState) => state.blog.postList)
+    const { postList, isLoading } = useSelector((state: RootState) => ({ ...state.blog }))
 
     const handleDeletePost = (id: string) => {
         dispatch(deletePost(id))
@@ -35,14 +35,23 @@ export default function PostList() {
                 </div>
             </div>
             <div className='grid gap-4 sm:grid-cols-2 md:gap-6 lg:grid-cols-2 xl:grid-cols-2 xl:gap-8'>
-                {postList.map((post) => (
-                    <PostItem
-                        key={post.id}
-                        post={post}
-                        handleDelete={handleDeletePost}
-                        handleStartEditing={handleStartEditingPost}
-                    />
-                ))}
+                {isLoading && (
+                    <>
+                        <SkeletonPost />
+                        <SkeletonPost />
+                        <SkeletonPost />
+                        <SkeletonPost />
+                    </>
+                )}
+                {!isLoading &&
+                    postList.map((post) => (
+                        <PostItem
+                            key={post.id}
+                            post={post}
+                            handleDelete={handleDeletePost}
+                            handleStartEditing={handleStartEditingPost}
+                        />
+                    ))}
             </div>
         </div>
     )
