@@ -30,14 +30,27 @@ export const getPostList = createAsyncThunk('blog/getPostList', async (_, thunkA
 })
 
 export const addPost = createAsyncThunk('blog/addPost', async (post: Omit<Post, 'id'>, thunkAPI) => {
-    console.log('HEHEH', post)
-    const response = await http.post<Post>('/posts', post)
-    return response.data
+    try {
+        const response = await http.post<Post>('/posts', post)
+        return response.data
+    } catch (error: any) {
+        if (error.name === 'AxiosError' && error.response.status === 422) {
+            return thunkAPI.rejectWithValue(error.response.data)
+        }
+        throw error
+    }
 })
 
 export const updatePost = createAsyncThunk('blog/updatePost', async (post: Post, thunkAPI) => {
-    const response = await http.put<Post>(`/posts/${post.id}`, post)
-    return response.data
+    try {
+        const response = await http.put<Post>(`/posts/${post.id}`, post)
+        return response.data
+    } catch (error: any) {
+        if (error.name === 'AxiosError' && error.response.status === 422) {
+            return thunkAPI.rejectWithValue(error.response.data)
+        }
+        throw error
+    }
 })
 
 export const deletePost = createAsyncThunk('blog/deletePost', async (id: string, thunkAPI) => {
@@ -86,7 +99,6 @@ export const blogSlice = createSlice({
             })
             .addCase(updatePost.rejected, (state, action) => {
                 if (action.error.name === 'AbortError') return
-                alert('updatePost rejected')
                 console.log('updatePost rejected', action.error)
             })
             .addCase(deletePost.fulfilled, (state, action) => {

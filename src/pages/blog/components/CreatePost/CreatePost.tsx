@@ -1,8 +1,13 @@
+import { unwrapResult } from '@reduxjs/toolkit'
 import { addPost, cancelEditingPost, updatePost } from 'pages/blog/blog.reducer'
 import { useEffect, useState } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState, useAppDispatch } from 'store'
 import { Post } from 'types/blog.type'
+
+interface ErrorForm {
+    publishedDate: string
+}
 
 const initialState: Post = {
     id: '',
@@ -14,23 +19,35 @@ const initialState: Post = {
 }
 
 const CreatePost = () => {
-    const [formData, setFormData] = useState<Post>(initialState)
     const dispatch = useAppDispatch()
+    const [errorForm, setErrorForm] = useState<null | ErrorForm>(null)
+    const [formData, setFormData] = useState<Post>(initialState)
     const { editingPost, isLoading } = useSelector((state: RootState) => ({ ...state.blog }))
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
     }
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault()
         if (editingPost) {
             dispatch(updatePost(formData))
+                .unwrap()
+                .then((result) => {
+                    setFormData(initialState)
+                    if (errorForm) setErrorForm(null)
+                })
+                .catch((error) => setErrorForm(error.error))
         } else {
-            const { id, ...postWithoutId } = formData
-            dispatch(addPost(postWithoutId))
+            try {
+                const { id, ...postWithoutId } = formData
+                await dispatch(addPost(postWithoutId)).unwrap()
+                setFormData(initialState)
+                if (errorForm) setErrorForm(null)
+            } catch (error: any) {
+                setErrorForm(error.error)
+            }
         }
-        setFormData(initialState)
     }
 
     const handleCancelEditing = () => {
@@ -102,7 +119,9 @@ const CreatePost = () => {
             <div className='mb-6'>
                 <label
                     htmlFor='publishedDate'
-                    className='mb-2 block text-sm font-medium text-gray-900 dark:text-gray-300'
+                    className={`mb-2 block text-sm font-medium dark:text-gray-300 ${
+                        errorForm?.publishedDate ? 'text-red-700' : 'text-gray-900'
+                    }`}
                 >
                     Publish Date
                 </label>
@@ -110,12 +129,21 @@ const CreatePost = () => {
                     type='datetime-local'
                     id='publishedDate'
                     name='publishedDate'
-                    className='block w-56 rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-blue-500'
+                    className={`block w-56 rounded-lg border p-2.5 text-sm ${
+                        errorForm?.publishedDate
+                            ? 'border-red-500 bg-red-50 placeholder-red-500 focus:border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 bg-gray-50 focus:border-blue-500 focus:outline-none focus:ring-blue-500'
+                    }`}
                     placeholder='Title'
                     required
                     value={formData.publishedDate}
                     onChange={handleChange}
                 />
+                {errorForm?.publishedDate && (
+                    <p className='mt-2 text-sm text-red-500'>
+                        <span className='font-medium'>Lỗi:</span> {errorForm.publishedDate}
+                    </p>
+                )}
             </div>
             <div className='mb-6 flex items-center'>
                 <input
